@@ -70,3 +70,5 @@ contract erc is ERC20Interface {
 		
 		
 }
+
+
