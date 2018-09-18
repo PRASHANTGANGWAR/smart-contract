@@ -5,8 +5,8 @@ pragma solidity ^0.4.24;
  * 
  */
  contract ERC20Interface {
-/*    function totalSupply() public constant returns (uint);
-*/    function balanceOf(address tokenOwner) public constant returns (uint balance);
+    function totalSupply() public constant returns (uint);
+    function balanceOf(address tokenOwner) public constant returns (uint balance);
     function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
     function transfer(address to, uint tokens) public returns (bool success);
     function approve(address spender, uint tokens) public returns (bool success);
@@ -17,33 +17,32 @@ pragma solidity ^0.4.24;
 }
 contract erc is ERC20Interface {
     
-    	string constant tokenName = "erc";
-		string  symbol = "erc";
+    	string constant tokenName = "erc"; //
+		string constant symbol = "erc";
 	    mapping (address => uint) myMapping;
 	    mapping(address => mapping (address => uint256)) allowed;
 
-		uint  decimal = 2; 
-		uint public totalSuppply;
+		uint  decimal = 18; //decimal of 18th for one unit of crncy
+		uint public totalSupply;
 
 	constructor() public{
-	    totalSuppply = 1000 * (10 ** decimal);
-        myMapping[msg.sender] = totalSuppply;
+	    totalSupply = 1000 * (10 ** decimal);
+        myMapping[msg.sender] = totalSupply;
 
 	}
 	
 
-	/*function  getTotalSupply() public constant returns (uint){
-		 return totalSuppply;
-		}*/
+	function  totalSupply() public constant returns (uint){
+		 return totalSupply;
+		}
 
 		function balanceOf(address tokenOwner) public constant returns(uint balance)  {
 		    return myMapping[tokenOwner];
 		}
 
 		function allowance (address tokenOwner,address spender) public constant returns(uint remaining)  {
-		   remaining= myMapping[spender];
-		   remaining= remaining *10 * (decimal);
-		    return remaining;
+		uint remaining1 = allowed[tokenOwner][spender];
+		    return remaining1;
 		}
         
     function approve(address spender, uint tokens) public  returns (bool success){
@@ -66,9 +65,6 @@ contract erc is ERC20Interface {
             
         }
 
-
 		
 		
 }
-
-
