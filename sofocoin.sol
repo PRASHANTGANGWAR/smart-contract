@@ -91,7 +91,7 @@ contract sofoCoin is ERC20Interface {
 
 
 
-
+ 
 
 /* 
 ac 1 -  0x0c5C35C3be3CE6DA4fcC03B591D7f10FEE17A446
