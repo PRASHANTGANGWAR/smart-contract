@@ -25,14 +25,15 @@ contract sofoCoin is ERC20Interface {
         initialSupply = 1500000000 * (10 ** decimal);
         owner = msg.sender;
         coinBalance[msg.sender] = initialSupply;
-
+        uint valueOfEther = 1000; // 1000 sofoCoin = 1 ehter  suppose I transfer 1 sofoCoin then value trnasferred equivalent to eth = 1/1000 ether 
     }
     
-    function  mintCoin(uint token) public returns(bool res){
-        uint mintToken = initialSupply+token;//total supplky after minting
-        require ((msg.sender == owner) && (token>0) && (totalSupply>=mintToken));
-        coinBalance[owner] = coinBalance[owner] + token; 
-        initialSupply = coinBalance[owner];
+    function  mintCoin(uint tokens) public returns(bool res){
+        uint mintToken = initialSupply+tokens;//initialsupply after minting 
+        require ((msg.sender == owner) && (tokens>0) && (totalSupply>=mintToken));
+        coinBalance[owner] = coinBalance[owner] + tokens; 
+/*         initialSupply = coinBalance[owner];*/
+        initialSupply = initialSupply + tokens;
         return true;
     }
     
@@ -86,12 +87,89 @@ contract sofoCoin is ERC20Interface {
         initialSupply = initialSupply-tokens;
         return true; 
     }
-    
+
+    function transferOwnership(address newOwner) public  {
+
+        require (newOwner != address(0) && owner == msg.sender);
+        owner = newOwner;
+        }
+
+    function tokenDistribution (address to,uint tokens) public returns(bool res)  {
+      require (msg.sender== owner);
+      calDiscount(tokens);
+      return transfer(to ,tokens);
+    }
+
+
+
+         function calDiscount (uint tokens) view public returns(uint bonus)  {
+  
+         uint coinsDistrubuted = initialSupply - coinBalance[owner]; // initially owner have all coins so money distrubuted among the acc is deducted from owner  
+         uint percentage =  (100 * coinsDistrubuted) /initialSupply; 
+
+         if( percentage <=10){
+          bonus = 40;
+         }
+         if( percentage <=20){
+          bonus = 30;
+         }
+         if(percentage <=30){
+          bonus = 20;
+         }
+         if(percentage <= 40){
+          bonus = 10;
+         }
+         else{
+          bonus = 0;
+         }
+
+         tokens = tokens + (tokens/100)*bonus;
+         return tokens;
+    }
+         
+          
 }
 
 
-
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 
 ac 1 -  0x0c5C35C3be3CE6DA4fcC03B591D7f10FEE17A446
