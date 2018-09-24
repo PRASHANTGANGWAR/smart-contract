@@ -20,6 +20,10 @@ contract sofoCoin is ERC20Interface {
  uint public  totalSupply;
  uint public initialSupply ;
  address public owner;
+/*  uint public startDate;
+ uint public bonusEnds;
+ uint public endDate; */
+
     constructor() public{
         totalSupply = 3000000000 * (10 ** decimal);
         initialSupply = 1500000000 * (10 ** decimal);
@@ -100,30 +104,37 @@ contract sofoCoin is ERC20Interface {
       return transfer(to ,tokens);
     }
 
+    function rate () returns(uint token) internal {
+      uint weiAmt = msg.value;
+     return weiAmt * (valueOfEther /10^18);
+    }
+    
+     function buyToken() public payable {
+      uint weiAmt = msg.value;
+    uint tokens = rate(weiAmt);
+      }
 
-
-         function calDiscount (uint tokens) view public returns(uint bonus)  {
+    function calDiscount (uint tokens) view public returns(uint bonus)  {
   
-         uint coinsDistrubuted = initialSupply - coinBalance[owner]; // initially owner have all coins so money distrubuted among the acc is deducted from owner  
-         uint percentage =  (100 * coinsDistrubuted) /initialSupply; 
+      uint coinsDistrubuted = initialSupply - coinBalance[owner]; // initially owner have all coins so money distrubuted among the acc is deducted from owner  
+      uint percentage =  (100 * coinsDistrubuted) /initialSupply; 
 
-         if( percentage <=10){
+       if( percentage <=10){
           bonus = 40;
-         }
-         if( percentage <=20){
+        }
+       if( percentage <=20){
           bonus = 30;
-         }
-         if(percentage <=30){
+        }
+       if(percentage <=30){
           bonus = 20;
-         }
-         if(percentage <= 40){
+        }
+       if(percentage <= 40){
           bonus = 10;
-         }
-         else{
+       }
+       else{
           bonus = 0;
-         }
-
-         tokens = tokens + (tokens/100)*bonus;
+       }
+       tokens = tokens + (tokens/100)*bonus;
          return tokens;
     }
          
