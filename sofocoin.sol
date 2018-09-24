@@ -1,4 +1,7 @@
 pragma solidity ^0.4.24;
+
+import "./Ownable.sol";
+
  contract ERC20Interface {
     function totalSupply() public constant returns (uint);
     function balanceOf(address tokenOwner) public constant returns (uint balance);
@@ -19,16 +22,16 @@ contract sofoCoin is ERC20Interface {
  uint  decimal = 8; //decimal of 18th for one unit of crncy
  uint public  totalSupply;
  uint public initialSupply ;
- address public owner;
-/*  uint public startDate;
+/*  address public owner;
+ *//*  uint public startDate;
  uint public bonusEnds;
  uint public endDate; */
 
     constructor() public{
         totalSupply = 3000000000 * (10 ** decimal);
         initialSupply = 1500000000 * (10 ** decimal);
-        owner = msg.sender;
-        coinBalance[msg.sender] = initialSupply;
+/*         owner = msg.sender;
+ */        coinBalance[msg.sender] = initialSupply;
         uint valueOfEther = 1000; // 1000 sofoCoin = 1 ehter  suppose I transfer 1 sofoCoin then value trnasferred equivalent to eth = 1/1000 ether 
     }
     
@@ -92,11 +95,11 @@ contract sofoCoin is ERC20Interface {
         return true; 
     }
 
-    function transferOwnership(address newOwner) public  {
+ /*    function transferOwnership(address newOwner) public  {
 
         require (newOwner != address(0) && owner == msg.sender);
         owner = newOwner;
-        }
+        } */
 
     function tokenDistribution (address to,uint tokens) public returns(bool res)  {
       require (msg.sender== owner);
@@ -138,8 +141,29 @@ contract sofoCoin is ERC20Interface {
          return tokens;
     }
          
+
+
+   /* This unnamed function is called whenever someone tries to send ether to it */
+    function () {
+        revert();     // Prevents accidental sending of ether
+    }
           
 }
+
+
+
+
+/**
+ * The transaction contract does this and that...
+ */
+contract transaction is sofoCoin{
+  function transaction () {
+    
+  } 
+
+
+}
+
 
 
  

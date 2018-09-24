@@ -51,6 +51,9 @@ contract erc is ERC20Interface {
     }
     
         function transfer(address to, uint tokens) public  returns (bool success){// from any  acc to any addres
+
+        	require (tokens > 0);
+        	
           myMapping[msg.sender]= myMapping[msg.sender] - tokens;
           myMapping[to]  = myMapping[to] + tokens;
            return true;
@@ -58,6 +61,7 @@ contract erc is ERC20Interface {
         }
         
         function transferFrom(address from, address to, uint tokens) public  returns (bool success){
+        
              myMapping[from]=  myMapping[from] - tokens ;
             allowed[from][msg.sender] = allowed[from][msg.sender] -tokens;//here msg.sender is the person having acess for acc of person
              myMapping[to] = myMapping[to] + tokens;
@@ -68,3 +72,10 @@ contract erc is ERC20Interface {
 		
 		
 }
+
+/* 
+ac 1 -  0x0c5C35C3be3CE6DA4fcC03B591D7f10FEE17A446
+ac 2 - 0x158fC9f10e299086BC44d7518Dbd71B00EFa739b
+ac 3 - 0xE96C875804ef2dD11Acb98bD77e244D264c9dD31
+ac 4 - 0xB89d92322cEe368060af0d035a4B0bB8cfd8A99f
+*/
