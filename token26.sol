@@ -12,8 +12,34 @@ pragma solidity ^0.4.24;
 
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
+    event Burn(address indexed tokenOwner, address indexed spender, uint tokens);
 }
-contract sofoCoin is ERC20Interface {
+
+
+contract Ownable {
+    address public owner;
+
+    function Ownable() {
+        owner = msg.sender;
+    }
+
+    
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+ 
+    function transferOwnership(address newOwner) onlyOwner {
+        if (newOwner != address(0)) {
+            owner = newOwner;
+        }
+    }
+
+}
+
+
+contract sofoCoin is ERC20Interface ,Ownable{
        
  string constant tokenName = "SofoCoin"; //
  string constant symbol = "Sofo";
@@ -23,21 +49,16 @@ contract sofoCoin is ERC20Interface {
  uint public  totalSupply;
  uint public initialSupply ;
  address public owner;  
- /*  uint public startDate;
- uint public bonusEnds;
- uint public endDate; */
+ uint valueOfEther = 1; // 1500 sofoCoin = 1 ehter 
 
-    constructor() public payable{
-        totalSupply = 3000000000 * (10 ** decimal);
-        initialSupply = 1500000000 * (10 ** decimal);
+
+    constructor() public {
+        totalSupply = 1000 * (10 ** decimal) * valueOfEther;
         owner = msg.sender;
-         coinBalance[msg.sender] = initialSupply;
-/*        uint valueOfEther = 1000; // 1000 sofoCoin = 1 ehter  suppose I transfer 1 sofoCoin then value trnasferred equivalent to eth = 1/1000 ether 
-*/    }
+        coinBalance[owner]= totalSupply;
+    }
     
-    function initialSupply() public constant returns(uint){
-        return initialSupply;   
-    } 
+   
 
     function  totalSupply() public constant returns (uint){
         return totalSupply;
@@ -78,13 +99,21 @@ contract sofoCoin is ERC20Interface {
         return true; 
     }          
     
-
-  function updateBalancesMapping(address ofAdress,uint tokens) public {
-        coinBalance[ofAdress] = coinBalance[ofAdress] - tokens;
-  
-    }
+    
     
     function getTokenOwner() public constant returns(address contractOwner){
         return owner;
     }
+
+    
+    
+          /* This unnamed function is called whenever someone tries to send ether to it */
+    function  () public payable{
+        revert();     // Prevents accidental sending of ether
+    }
+    
+  
 }
+
+ 
+

@@ -3,72 +3,66 @@ pragma solidity ^0.4.24;
 
 import "./token.sol";
 
-contract ico {
-   /*  mapping (address => uint) coinBalance;
-     mapping(address => mapping (address => uint256)) allowed;*/
+contract ico is Ownable {
      uint  decimal = 18; //decimal of 18th for one unit of crncy
-     uint public  totalSupply ; 
-     uint public initialSupply ;
-    uint public contractOwnerBalance;
-     address public owner; 
-     uint valueOfEther = 1; // 1000 sofoCoin = 1 ehter  
-     sofoCoin ercObject;
-     event chk(address);
-	constructor (address tokenaddress) public payable{
-		 ercObject = sofoCoin(tokenaddress);
-		 owner = address(this);
-		 totalSupply = ercObject.totalSupply();
-		 initialSupply = 1500000000 * (10 ** 18);
-		 ercObject.transfer(owner,initialSupply);
-	}	
-    
-    function  burnTokens( uint tokens) public returns(bool res)  {
-        // burn token from qwner acc only burn from intitialSupply
-        uint haveToken = ercObject.balanceOf(owner);
-     address tokenContractOwner = ercObject.getTokenOwner();
-        tokens = tokens * (10 ** decimal);
-     require (msg.sender==tokenContractOwner && haveToken >= tokens);
-        ercObject.updateBalancesMapping(owner,tokens);
-        initialSupply =  address(this).balance;
-        return true; 
-    }
+/*     uint public initialSupply ; //initial supply for the contract to distribute coins can be increased later
+  */ uint public contractBalance;// balance of this contract can be used address(this).balance
+     uint valueOfEther = 1; // 1 sofoCoin = 1 ehter 
+     uint minTradeAmt =100000000000000000;//0.1eth
+    uint public hardCap = 1000 * (10 ** 18);//ether
+    uint public softCap =  500 * (10 ** 18);//ether
+    uint public weiRaised;
+    uint public coinsDistrubuted; //coins distrubuted or amt of coins bought by users
+    uint balanceInEther;
+    uint public startDate ;
+    uint public bonusEnds;
+    uint public endDate ;
+     
+     /*constructor updated  var*/
+     address tokenContractOwner ; // adress of token contract owner
+     uint public  totalSupply ; //totalSupply of this ico defined within token contract
+     address public owner; //address of this contract
+     sofoCoin ercObject; // created object of token contract 
 
-    function tokenDistribution (address to,uint tokens) private returns(bool res)  {
-      require(msg.sender== owner);
-      calDiscount(tokens);
-      return ercObject.transfer(to ,tokens);
-    }
-
+  constructor (address tokenaddress) public{
+     ercObject = sofoCoin(tokenaddress);
+     owner = address(this);
+     totalSupply = ercObject.totalSupply();
+     tokenContractOwner = ercObject.getTokenOwner();
+     startDate = now;
+     bonusEnds = now + 2629743;// 1 month in epoch time 
+         endDate = now + 7 ;
+  } 
+  
     function calcuateRate (uint amount) internal view returns(uint token){
-     return amount * (valueOfEther); // return token = wei sent * 1000
+      return amount * (valueOfEther); // return token = wei sent * 1
+      
     }
     
     function buyToken() public payable { 
-        // initialSupply = address(this).balance;
-    contractOwnerBalance = ercObject.balanceOf(owner);    
-      require(msg.value >0);//contains amount of wie sent in tx
-      uint tokens = calcuateRate(msg.value);//here tokens are the mini. value of sofocoin
-      require(tokens<=initialSupply);
-	  tokens  = calDiscount(tokens);
-	  ercObject.transfer(msg.sender, tokens);// transfer function caall now msg.sender is icoContract
+      require(msg.value >=minTradeAmt);//contains amount of wie sent in tx ,, min contribution 0.1 ehter 
+      uint sofo = calcuateRate(msg.value);//here tokens are the mini. value of sofocoin sofo
+      contractBalance = ercObject.balanceOf(owner);
+      require(sofo<=contractBalance);
+    sofo  = calDiscount(sofo);
+    ercObject.transfer(msg.sender, sofo);// transfer function caall now msg.sender is icoContract
+    coinsDistrubuted= coinsDistrubuted + sofo;
+    weiRaised += msg.value;
+     balanceInEther  += address(this).balance;
     }
 
     function calDiscount (uint tokens) view public returns(uint bonus)  {
-  
-      uint coinsDistrubuted = initialSupply - ercObject.balanceOf(owner); // initially owner have all coins so money distrubuted among the acc is deducted from owner  
-      
-      uint percentage =  (100 * coinsDistrubuted) /initialSupply; 
 
-       if( percentage <=10 || percentage == 0){
-          bonus = 40;
+       if( coinsDistrubuted < 100000000000000000000 ){
+          bonus = 40;         
         }
-       else if( percentage <=20){
+       else if( coinsDistrubuted < 200000000000000000000){
           bonus = 30;
         }
-       else if(percentage <=30){
+       else if(coinsDistrubuted < 300000000000000000000){
           bonus = 20;
         }
-       else if(percentage <= 40){
+       else if(coinsDistrubuted < 400000000000000000000){
           bonus = 10;
        }
        else{
@@ -78,31 +72,23 @@ contract ico {
         return tokens;
     }
          
-     function  mintCoin(uint tokens) public returns(uint retTotalSupply){
-        address tokenContractOwner = ercObject.getTokenOwner();
-        require ((msg.sender == tokenContractOwner) && (tokens>0));
-        totalSupply = totalSupply + tokens;
-        return totalSupply;
-    }
 
-   /* This unnamed function is called whenever someone tries to send ether to it */
-   /* function  () public payable{
+       /* This unnamed function is called whenever someone tries to send ether to it */
+    function  () public payable{
         revert();     // Prevents accidental sending of ether
     }
-    */
- 
-     
-    /*function  burnTokens( uint tokens) public returns(bool res)  {
-        // burn token from qwner acc only burn from intitialSupply
-        address tokenContractOwner = ercObject.getTokenOwner();
-        uint haveToken = ercObject.balanceOf(tokenContractOwner);
-        tokens = tokens * (10 ** decimal);
-       emit chk(owner);
-        require (msg.sender==tokenContractOwner && haveToken >= tokens);
-        ercObject.updateBalancesMapping(tokenContractOwner,tokens);
-        initialSupply = initialSupply-tokens;
-        return true; 
-    }*/
- 
-   
+  
+  function getBackEther() public returns(uint amount){
+      /*require(timePeriod);*/
+      require(weiRaised<softCap);
+      
+      
+  }
+  
+  function withdrawEther() public returns(uint amount){
+      require(msg.sender == tokenContractOwner);
+      msg.sender.transfer(this.balance);
+
+  }
+  
 }
