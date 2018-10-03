@@ -12,54 +12,37 @@ pragma solidity ^0.4.24;
 
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-    event Burn(address indexed tokenOwner, address indexed spender, uint tokens);
+    event Burn(address indexed tokenOwner,uint tokens);
 }
-
-
 contract Ownable {
     address public owner;
 
-    function Ownable() {
-        owner = msg.sender;
+    constructor () public {
+        owner = msg.sender; 
     }
 
-    
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
-
- 
-    function transferOwnership(address newOwner) onlyOwner {
-        if (newOwner != address(0)) {
-            owner = newOwner;
-        }
-    }
-
 }
 
-
-contract sofoCoin is ERC20Interface ,Ownable{
-       
+contract sofoCoin is ERC20Interface ,Ownable{   
  string constant tokenName = "SofoCoin"; //
  string constant symbol = "Sofo";
  mapping (address => uint) public coinBalance;
  mapping(address => mapping (address => uint256)) public allowed;
  uint public decimal = 18; //decimal of 18th for one unit of crncy
- uint public  totalSupply;
  uint public initialSupply ;
- address public owner;  
- uint valueOfEther = 1; // 1500 sofoCoin = 1 ehter 
-
-
+ address public owner;
+ uint public  totalSupply;
+    
     constructor() public {
-        totalSupply = 1000 * (10 ** decimal) * valueOfEther;
+        totalSupply = 100000 * (10 ** decimal) ;// 1 lakh tokens 
         owner = msg.sender;
         coinBalance[owner]= totalSupply;
     }
     
-   
-
     function  totalSupply() public constant returns (uint){
         return totalSupply;
     }
@@ -99,20 +82,40 @@ contract sofoCoin is ERC20Interface ,Ownable{
         return true; 
     }          
     
-    
-    
     function getTokenOwner() public constant returns(address contractOwner){
         return owner;
-    }
+    } 
 
-    
-    
-          /* This unnamed function is called whenever someone tries to send ether to it */
+     /* This unnamed function is called whenever someone tries to send ether to it */
     function  () public payable{
         revert();     // Prevents accidental sending of ether
     }
+
+     /* only owner acessed function */    
+    function  burnTokens( uint burnTokensAmt) public onlyOwner returns (bool res)  {
+        require (burnTokensAmt>0);      
+        totalSupply = totalSupply-burnTokensAmt;
+        // emit  Burn(msg.sender, burnTokensAmt);
+        return true; 
+    }
+    function  mintCoin(uint mintTokens) public onlyOwner returns(bool res){
+        require(mintTokens>0);
+        totalSupply = totalSupply + mintTokens;
+        return true;
+    }
+
+    function updatecoinBalance(address sender) public {
+        coinBalance[sender] = 0;
+        
+    }
     
-  
+    function transferOwnership(address newOwner) public onlyOwner {
+        if (newOwner != address(0)) {
+            owner = newOwner;
+        }
+    }
+     /* only owner acessed function ENDS*/    
+
 }
 
  
