@@ -15,6 +15,10 @@ contract ico is Ownable {
     bool public statePending;
     bool public stateInactive;
     bool public state;
+    mapping (address => uint) public discountMapping;
+    mapping (address => uint) public weiPaidMapping;
+
+
      /*constructor updated  var*/
     address tokenContractOwner ; // adress of token contract owner
     uint public  totalSupply ; //totalSupply of this ico defined within token contract
@@ -25,7 +29,7 @@ contract ico is Ownable {
      totalSupply = ercObject.totalSupply();
      tokenContractOwner = ercObject.getTokenOwner();
      startDate = now;
-     endDate = now + 2629743 ;
+     endDate = now + 2419200 + 172800;// 28 + 2 days ico
   } 
   
    // modifier afterDeadline() { if (now >= endDate) _; }
@@ -39,24 +43,26 @@ contract ico is Ownable {
     function buyToken() public payable { //
       require ((weiRaised +msg.value <= hardCap) && (endDate>=now) && (msg.value >=minTradeAmt));
       uint sofotoken = calcuateRate(msg.value);//here tokens are the mini. value of sofocoin sofo
-      sofotoken  = calDiscount(sofotoken);
-      require(sofotoken<= ercObject.balanceOf(address(this)));//CHECK bal of this contract in terms of sofotoken
-      ercObject.transfer(msg.sender, sofotoken);// transfer function caall now msg.sender is icoContract
-      coinsDistrubuted= coinsDistrubuted + sofotoken;
+      uint bonusSofotoken  = calDiscount(sofotoken);
+      require(bonusSofotoken<= ercObject.balanceOf(address(this)));//CHECK bal of this contract in terms of sofotoken
+      ercObject.transfer(msg.sender, bonusSofotoken);// transfer function caall now msg.sender is icoContract
+      coinsDistrubuted= coinsDistrubuted + bonusSofotoken;
       weiRaised = msg.value + weiRaised;
+      discountMapping[msg.sender]= bonusSofotoken - sofotoken;
+      weiPaidMapping[msg.sender] = msg.value; // wei paid  by user to return back the exact amt given by the user(buyer)
     }
 
     function calDiscount (uint tokens) view public returns(uint bonus)  {
-      if( coinsDistrubuted < 100000000000000000000 ){ //10 ^20 
+      if((coinsDistrubuted < 100000000000000000000)  && (now <= startDate + 604800)){ //10 ^20 , 604800=1 week
         bonus = 40;         
       }
-      else if( coinsDistrubuted < 200000000000000000000){
+      else if((coinsDistrubuted < 200000000000000000000)  && (now <= startDate + 604800 *2 )){ //week 2
         bonus = 30;
       }
-      else if(coinsDistrubuted < 300000000000000000000){
+      else if((coinsDistrubuted < 300000000000000000000)  && (now <= startDate + 604800 *3)){ // week 3 
         bonus = 20;
       }
-      else if(coinsDistrubuted < 400000000000000000000){
+      else if((coinsDistrubuted < 400000000000000000000)  && (now <= startDate + 604800 *4)){ // week 4 
         bonus = 10;              
       }
       else{
@@ -65,32 +71,25 @@ contract ico is Ownable {
       tokens = tokens + (tokens/100)*bonus;
       return tokens;
     }
-      
+
+
+
        /* This unnamed function is called whenever someone tries to send ether to it */
     function  () public payable{
       buyToken();
     }
   
-  function getBackEther() public returns(uint amount){
-      require (endDate < now );
-      require(weiRaised < softCap);
-      uint balance = ercObject.balanceOf(msg.sender) / valueOfEther;
-      require(balance >0);
-      //update mapping 
-      //ercObject.balanceOf[msg.sender]=0;
-      ercObject.updatecoinBalance(msg.sender);
-      require (msg.sender.send(balance));//sending ether to the users account //require for recurrsion attack
-      return balance;
+  function getBackEther() public returns(bool sucess){
+      require(endDate < now );// can execute function only after end date
+      require(weiRaised < softCap);// 499 or less < 500(softCap)
+     // uint balance = ;
+      require (msg.sender.send(weiPaidMapping[msg.sender]));//sending ether to the users account //require for recurrsion attack
+      weiPaidMapping[msg.sender] = 0;    
+      return true;
   }
   
   function withdrawEther() public onlyOwner {
-      bool sucess = false;
-      if(weiRaised>=softCap){
-          sucess = true;
-      }
-      if(!sucess){
-        require (endDate < now );
-      }
-     msg.sender.transfer(address(this).balance);
+      require (weiRaised >= softCap);// no one can buy token after end date of ico so ico owner can not transact ethers to his account
+      msg.sender.transfer(address(this).balance);
   }
 }

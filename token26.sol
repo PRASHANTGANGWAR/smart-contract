@@ -84,31 +84,25 @@ contract sofoCoin is ERC20Interface ,Ownable{
     
     function getTokenOwner() public constant returns(address contractOwner){
         return owner;
-    } 
-
-     /* This unnamed function is called whenever someone tries to send ether to it */
-    function  () public payable{
-        revert();     // Prevents accidental sending of ether
     }
 
      /* only owner acessed function */    
     function  burnTokens( uint burnTokensAmt) public onlyOwner returns (bool res)  {
-        require (burnTokensAmt>0);      
-        totalSupply = totalSupply-burnTokensAmt;
+        require (coinBalance[owner] >= burnTokensAmt);      
+        totalSupply = totalSupply-burnTokensAmt;// dec totalSupply by burned tokens
+        coinBalance[owner]=coinBalance[owner] - burnTokensAmt;//coin deducted to the owner coinbalance   
         // emit  Burn(msg.sender, burnTokensAmt);
         return true; 
     }
     function  mintCoin(uint mintTokens) public onlyOwner returns(bool res){
         require(mintTokens>0);
-        totalSupply = totalSupply + mintTokens;
+        totalSupply = totalSupply + mintTokens;//inc totalSupply by burned tokens 
+        coinBalance[owner]=coinBalance[owner] + mintTokens;//coin added to the owner coinbalance
+
         return true;
     }
 
-    function updatecoinBalance(address sender) public {
-        coinBalance[sender] = 0;
-        
-    }
-    
+       
     function transferOwnership(address newOwner) public onlyOwner {
         if (newOwner != address(0)) {
             owner = newOwner;
