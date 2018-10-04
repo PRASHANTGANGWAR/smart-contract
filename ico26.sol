@@ -12,7 +12,7 @@ contract ico is Ownable {
     uint public startDate ;
     uint public endDate ;
     bool public stateActive;
-    bool public statePending;
+    bool public statePending = true;
     bool public icoIsSuccessfull;
     mapping (address => uint) public discountMapping;
     mapping (address => uint) public weiPaidMapping;
@@ -102,8 +102,8 @@ contract ico is Ownable {
   }
 
   function state () view public {
-    if(startDate > now){
-      statePending = true;
+    if(startDate < now){
+      statePending = false;
     }
     if(endDate > now && weiRaised<hardCap){
       stateActive = true;
