@@ -13,21 +13,28 @@ contract ico is Ownable {
     uint public endDate ;
     bool public stateActive;
     bool public statePending;
-    bool public stateInactive;
-    bool public state;
+    bool public icoIsSuccessfull;
     mapping (address => uint) public discountMapping;
     mapping (address => uint) public weiPaidMapping;
-
-
+/* 
+    struct state public{
+    bool public stateActive;
+    bool public statePending;
+    bool public icoIsSuccessfull;
+    } */
+    
      /*constructor updated  var*/
-    address tokenContractOwner ; // adress of token contract owner
+   // address tokenContractOwner ; // adress of token contract owner
     uint public  totalSupply ; //totalSupply of this ico defined within token contract
     sofoCoin ercObject; // created object of token contract 
 
+    event TokenBuyer(address indexed buyer , uint wei);
+    event EtherWithdrawn(address indexed buyer );
+    
   constructor (address tokenaddress) public{
      ercObject = sofoCoin(tokenaddress);
      totalSupply = ercObject.totalSupply();
-     tokenContractOwner = ercObject.getTokenOwner();
+   //  tokenContractOwner = ercObject.getTokenOwner();
      startDate = now;
      endDate = now + 2419200 + 172800;// 28 + 2 days ico
   } 
@@ -48,21 +55,22 @@ contract ico is Ownable {
       ercObject.transfer(msg.sender, bonusSofotoken);// transfer function caall now msg.sender is icoContract
       coinsDistrubuted= coinsDistrubuted + bonusSofotoken;
       weiRaised = msg.value + weiRaised;
-      discountMapping[msg.sender]= bonusSofotoken - sofotoken;
+      discountMapping[msg.sender]= bonusSofotoken - sofotoken;//discount given or extra tokens given
       weiPaidMapping[msg.sender] = msg.value; // wei paid  by user to return back the exact amt given by the user(buyer)
+      emit TokenBuyer(msg.sender , msg.value);
     }
 
     function calDiscount (uint tokens) view public returns(uint bonus)  {
-      if((coinsDistrubuted < 100000000000000000000)  && (now <= startDate + 604800)){ //10 ^20 , 604800=1 week
+      if((coinsDistrubuted < 1000000 * (10 ** decimal))  && (now <= startDate + 604800)){ //10 ^20 , 604800=1 week
         bonus = 40;         
       }
-      else if((coinsDistrubuted < 200000000000000000000)  && (now <= startDate + 604800 *2 )){ //week 2
+      else if((coinsDistrubuted < 2000000 * (10 ** decimal))  && (now <= startDate + 604800 *2 )){ //week 2
         bonus = 30;
       }
-      else if((coinsDistrubuted < 300000000000000000000)  && (now <= startDate + 604800 *3)){ // week 3 
+      else if((coinsDistrubuted < 3000000 * (10 ** decimal))  && (now <= startDate + 604800 *3)){ // week 3 
         bonus = 20;
       }
-      else if((coinsDistrubuted < 400000000000000000000)  && (now <= startDate + 604800 *4)){ // week 4 
+      else if((coinsDistrubuted < 4000000 * (10 ** decimal))  && (now <= startDate + 604800 *4)){ // week 4 
         bonus = 10;              
       }
       else{
@@ -80,16 +88,35 @@ contract ico is Ownable {
     }
   
   function getBackEther() public returns(bool sucess){
-      require(endDate < now );// can execute function only after end date
-      require(weiRaised < softCap);// 499 or less < 500(softCap)
-     // uint balance = ;
+      require((endDate < now) && (weiRaised < softCap) && (weiPaidMapping[msg.sender] > 0));// can execute function only after end date && 499 or less < 500(softCap)
       require (msg.sender.send(weiPaidMapping[msg.sender]));//sending ether to the users account //require for recurrsion attack
-      weiPaidMapping[msg.sender] = 0;    
+      weiPaidMapping[msg.sender] = 0;
+      emit EtherWithdrawn(msg.sender);    
       return true;
+
   }
   
   function withdrawEther() public onlyOwner {
       require (weiRaised >= softCap);// no one can buy token after end date of ico so ico owner can not transact ethers to his account
       msg.sender.transfer(address(this).balance);
   }
+
+  function state () view public {
+    if(startDate > now){
+      statePending = true;
+    }
+    if(endDate > now && weiRaised<hardCap){
+      stateActive = true;
+    }
+    else{
+        stateActive = false;
+    }
+
+    if(weiRaised > softCap)
+    {
+      icoIsSuccessfull = true;
+    }
+
+  }
+  
 }

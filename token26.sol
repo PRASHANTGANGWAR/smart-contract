@@ -13,6 +13,7 @@ pragma solidity ^0.4.24;
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
     event Burn(address indexed tokenOwner,uint tokens);
+    event MintCoin(address indexed tokenOwner,uint tokens);
 }
 contract Ownable {
     address public owner;
@@ -38,7 +39,7 @@ contract sofoCoin is ERC20Interface ,Ownable{
  uint public  totalSupply;
     
     constructor() public {
-        totalSupply = 100000 * (10 ** decimal) ;// 1 lakh tokens 
+        totalSupply = 3000000000 * (10 ** decimal) ;// 300million tokens 3000000000 * 000000000000000000
         owner = msg.sender;
         coinBalance[owner]= totalSupply;
     }
@@ -81,24 +82,19 @@ contract sofoCoin is ERC20Interface ,Ownable{
         emit Transfer(from, to, tokens);
         return true; 
     }          
-    
-    function getTokenOwner() public constant returns(address contractOwner){
-        return owner;
-    }
-
-     /* only owner acessed function */    
+      
     function  burnTokens( uint burnTokensAmt) public onlyOwner returns (bool res)  {
         require (coinBalance[owner] >= burnTokensAmt);      
         totalSupply = totalSupply-burnTokensAmt;// dec totalSupply by burned tokens
         coinBalance[owner]=coinBalance[owner] - burnTokensAmt;//coin deducted to the owner coinbalance   
-        // emit  Burn(msg.sender, burnTokensAmt);
+        emit BurnToken(owner, burnTokensAmt);
         return true; 
     }
     function  mintCoin(uint mintTokens) public onlyOwner returns(bool res){
         require(mintTokens>0);
         totalSupply = totalSupply + mintTokens;//inc totalSupply by burned tokens 
         coinBalance[owner]=coinBalance[owner] + mintTokens;//coin added to the owner coinbalance
-
+        emit MintCoin(owner,mintTokens);
         return true;
     }
 
@@ -110,6 +106,10 @@ contract sofoCoin is ERC20Interface ,Ownable{
     }
      /* only owner acessed function ENDS*/    
 
+    function  () public payable{
+      revert();
+    }
+  
 }
 
  
