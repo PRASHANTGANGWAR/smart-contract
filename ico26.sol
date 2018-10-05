@@ -14,8 +14,10 @@ contract ico is Ownable {
     bool public stateActive;
     bool public statePending = true;
     bool public icoIsSuccessfull;
-    mapping (address => uint) public discountMapping;
-    mapping (address => uint) public weiPaidMapping;
+    uint public maxTokenCanBuy = 150000 * (10 ** decimal);//to achieve decentralisation 100 ether capping
+    // uint public contributionPercentage ;
+    mapping (address => uint)  discountMapping;
+    mapping (address => uint)  weiPaidMapping;
 /* 
     struct state public{
     bool public stateActive;
@@ -28,7 +30,7 @@ contract ico is Ownable {
     uint public  totalSupply ; //totalSupply of this ico defined within token contract
     sofoCoin ercObject; // created object of token contract 
 
-    event TokenBuyer(address indexed buyer , uint wei);
+    event TokenBuyer(address indexed buyer , uint weiPaid);
     event EtherWithdrawn(address indexed buyer );
     
   constructor (address tokenaddress) public{
@@ -48,10 +50,11 @@ contract ico is Ownable {
     }
     
     function buyToken() public payable { //
-      require ((weiRaised +msg.value <= hardCap) && (endDate>=now) && (msg.value >=minTradeAmt));
+      require ((weiRaised +msg.value <= hardCap) && (endDate>=now) && (msg.value >=minTradeAmt) && (startDate<=now));
       uint sofotoken = calcuateRate(msg.value);//here tokens are the mini. value of sofocoin sofo
       uint bonusSofotoken  = calDiscount(sofotoken);
       require(bonusSofotoken<= ercObject.balanceOf(address(this)));//CHECK bal of this contract in terms of sofotoken
+      require(ercObject.balanceOf(msg.sender) +bonusSofotoken <= maxTokenCanBuy );
       ercObject.transfer(msg.sender, bonusSofotoken);// transfer function caall now msg.sender is icoContract
       coinsDistrubuted= coinsDistrubuted + bonusSofotoken;
       weiRaised = msg.value + weiRaised;
@@ -80,8 +83,6 @@ contract ico is Ownable {
       return tokens;
     }
 
-
-
        /* This unnamed function is called whenever someone tries to send ether to it */
     function  () public payable{
       buyToken();
@@ -101,7 +102,7 @@ contract ico is Ownable {
       msg.sender.transfer(address(this).balance);
   }
 
-  function state () view public {
+  function icoState () public {
     if(startDate < now){
       statePending = false;
     }
@@ -117,6 +118,11 @@ contract ico is Ownable {
       icoIsSuccessfull = true;
     }
 
+  }
+  
+  function contributionPercent() public view returns(uint percentage){
+      // let buyer know what percentage they hold in ico
+    return  (ercObject.balanceOf(msg.sender) * 100 )/totalSupply;
   }
   
 }
