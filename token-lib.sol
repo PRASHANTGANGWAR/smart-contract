@@ -1,8 +1,5 @@
 pragma solidity ^0.4.24;
 
-/*import "./Ownable.sol";
-*/
-
 library SafeMath {
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a * b;
@@ -41,7 +38,7 @@ library SafeMath {
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
     event Burn(address indexed tokenOwner,uint tokens);
 }
-contract Ownable {
+ contract Ownable {
     address public owner;
     using SafeMath for uint256;
 
@@ -116,12 +113,7 @@ contract sofoCoin is ERC20Interface ,Ownable{
         emit Transfer(from, to, tokens);
         return true; 
     }          
-    
-   /*  function getTokenOwner() public constant returns(address contractOwner){
-        return owner;
-    } */
-
-     /* only owner acessed function */    
+         /* only owner acessed function */    
     function  burnTokens( uint burnTokensAmt) public onlyOwner returns (bool res)  {
         require (coinBalance[owner] >= burnTokensAmt);      
         totalSupply = totalSupply.sub(burnTokensAmt);// dec totalSupply by burned tokens
@@ -136,9 +128,7 @@ contract sofoCoin is ERC20Interface ,Ownable{
 
         return true;
     }
-  
      /* only owner acessed function ENDS*/    
-
 }
 
  

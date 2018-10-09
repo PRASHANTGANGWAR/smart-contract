@@ -24,25 +24,16 @@ contract ico is Ownable {
    uint bountyShare    = 60000000 * (10 ** decimal); // 2%
    uint advisorShare   = 300000000 * (10 ** decimal); // 10%
    uint teamShare      = 450000000 * (10 ** decimal); // 15%
-   uint liquidityShare = 300000000 * (10 ** decimal); // 10% /// giving for exchange website for gas used in tx 
-   // to liquidate market value of the coin by increasing the coins in flow
+   uint liquidityShare = 300000000 * (10 ** decimal); // 10%  
+   // to liquidate market value of the coin by increasing the coins in flow etc
    uint public tokenReleasedFounder ;
    uint public tokenReleasedAdvisor ;
    uint public tokenReleasedTeam ;
    uint public tokenReleasedBounty ;
    uint public tokenReleasedliquidity ;
-
-
     /* shares */
-/* 
-    struct state public{
-    bool public stateActive;
-    bool public statePending;
-    bool public icoIsSuccessfull;
-    } */
-    
+
      /*constructor updated  var*/
-   // address tokenContractOwner ; // adress of token contract owner
     uint public  totalSupply ; //totalSupply of this ico defined within token contract
     sofoCoin ercObject; // created object of token contract 
 
@@ -52,19 +43,10 @@ contract ico is Ownable {
   constructor (address tokenaddress) public{
      ercObject = sofoCoin(tokenaddress);
      totalSupply = ercObject.totalSupply();
-   //  tokenContractOwner = ercObject.getTokenOwner();
      startDate = now;
      endDate = now + 30 days;//30 days ico
   } 
-  
    // modifier afterDeadline() { if (now >= endDate) _; }
-
- /*   function calcuateRate (uint amount) internal view returns(uint token){
-     amount = amount * (valueOfEther) * (10 ** decimal); // return token = wei sent * 1
-     amount = amount /(10 ** 18);
-     return amount;
-    }*/
-    
     function buyToken() public payable { //
       require ((weiRaised +msg.value <= hardCap) && (endDate>=now) && (msg.value >=minTradeAmt) && (startDate<=now));
       //uint sofotoken = calcuateRate(msg.value);//here tokens are the mini. value of sofocoin sofo
@@ -80,10 +62,8 @@ contract ico is Ownable {
     }
 
     function calDiscount (uint amount) view public returns(uint bonus)  {
-        
       amount = amount * (valueOfEther) * (10 ** decimal); // return token = wei sent * 1
       amount = amount.div(10 ** 18);
-        
       if((coinsDistrubuted < 1000000 * (10 ** decimal))  && (now <= startDate + 604800)){ //10 ^20 , 604800=1 week
         bonus = 40;         
       }
@@ -115,13 +95,11 @@ contract ico is Ownable {
       weiPaidMapping[msg.sender] = 0;
       require (msg.sender.send(etherReturn));//sending ether to the users account //require for recurrsion attack
       return true;
-
   }
   
   function withdrawEther() public onlyOwner {
       require (weiRaised >= softCap);// no one can buy token after end date of ico so ico owner can not transact ethers to his account
       msg.sender.transfer(address(this).balance);
-
   }
 
   function icoState () public {
@@ -139,77 +117,73 @@ contract ico is Ownable {
     {
       icoIsSuccessfull = true;
     }
-
   }
 
 
-  function isEligible () public  returns(uint ) {
+  function isEligible (uint tokens) public view returns(uint token ) {
     require (now > endDate + 90 days);//can take out tokens after 3 month of ico enddate
     require (tokens>0 && icoIsSuccessfull);
-
+    tokens = tokens * (10 ** decimal); // b/w 3-6 month
+    return tokens;
   }
 
-/* 
-   function releaseVestedTokenFounder(uint tokens) onlyOwner public returns(bool sucess){
-        isEligible(tokens);
-        tokens = tokens * (10 ** decimal); 
-        if((endDate + 180 days  >= now )&& ( now > endDate + 90 days )&&(tokenReleasedFounder +tokens <= 97500000 * (10 ** decimal))){
-          founderShare = founderShare.sub(tokens);
-          tokenReleasedFounder = tokenReleasedFounder + tokens;
-          ercObject.transfer(msg.sender, tokens);//msg.sender owner
+  function transferFunds (uint tokens , bool select) internal returns(bool res)  {
+        if(select){
+       founderShare = founderShare.sub(tokens);
+       tokenReleasedFounder = tokenReleasedFounder + tokens;
+       ercObject.transfer(msg.sender, tokens);//msg.sender owner
+       return true;
+     }
+     else
+     {
+        advisorShare = advisorShare.sub(tokens);
+        tokenReleasedAdvisor = tokenReleasedAdvisor + tokens;
+        ercObject.transfer(msg.sender, tokens);//msg.sender owner
         return true;
+     }
+  }
+  
+
+   function releaseVestedTokenFounder(uint tokens) onlyOwner public returns(bool sucess){
+       tokens= isEligible(tokens);
+        if((endDate + 180 days  >= now )&& ( now > endDate + 90 days )&&(tokenReleasedFounder +tokens <= 97500000 * (10 ** decimal))){
+          transferFunds(tokens , true);
+           return true;
         }
         else if ((endDate + 270 days >= now )&& ( now > endDate + 180 days ) && (tokenReleasedFounder + tokens<= 195000000 * (10 ** decimal))){
-          founderShare = founderShare.sub(tokens);
-          tokenReleasedFounder = tokenReleasedFounder + tokens;
-          ercObject.transfer(msg.sender, tokens);
-        return true;
+          transferFunds(tokens , true);
+           return true;
         }                                           
         else if ((endDate + 360 days >= now )&& ( now > endDate + 270 days )&& (tokenReleasedFounder +tokens <= 292500000 * (10 ** decimal))){
-          founderShare = founderShare.sub(tokens);
-          tokenReleasedFounder = tokenReleasedFounder + tokens;
-          ercObject.transfer(msg.sender, tokens);
-        return true;
+          transferFunds(tokens , true);
+           return true;
         }
         else if (( now > endDate +  360 days )&& (tokenReleasedFounder +tokens <= 390000000 * (10 ** decimal))){
-          founderShare = founderShare.sub(tokens);
-          tokenReleasedFounder = tokenReleasedFounder + tokens;
-          ercObject.transfer(msg.sender, tokens); 
-        return true;
+          transferFunds(tokens , true);
+           return true;
         }
         revert();
-    } */
-    
+    }
 
      function releaseVestedTokenAdvisor(uint tokens) onlyOwner public returns(bool sucess){
-        require (tokens>0 && icoIsSuccessfull);
-        require (now > endDate + 90 days);//can take out tokens after 3 month of ico enddate
-        tokens = tokens * (10 ** decimal); // b/w 3-6 month
+        tokens= isEligible(tokens);
         if((endDate +  180 days  >= now )&& ( now > endDate + 90 days )&&(tokenReleasedAdvisor +tokens <= 75000000 * (10 ** decimal))){
-          advisorShare = advisorShare.sub(tokens);
-          tokenReleasedAdvisor = tokenReleasedAdvisor + tokens;
-          ercObject.transfer(msg.sender, tokens);//msg.sender owner
-          return true;
+          transferFunds(tokens , false);
+           return true;
         }
         //6-9 month
         else if ((endDate + 270 days >= now )&& ( now > endDate + 180 days ) && (tokenReleasedAdvisor + tokens<= 150000000 * (10 ** decimal))){
-          advisorShare = advisorShare.sub(tokens);
-          tokenReleasedAdvisor = tokenReleasedAdvisor + tokens;
-          ercObject.transfer(msg.sender, tokens);//msg.sender owner
+         transferFunds(tokens , false);
           return true;
         }  
         // 9-12 month                                         
         else if ((endDate + 360 days >= now )&& ( now > endDate + 270 days )&& (tokenReleasedAdvisor +tokens <= 225000000 * (10 ** decimal))){
-          advisorShare = advisorShare.sub(tokens);
-          tokenReleasedAdvisor = tokenReleasedAdvisor + tokens;
-          ercObject.transfer(msg.sender, tokens);//msg.sender owner
+         transferFunds(tokens , false);
           return true;
         }
         //after 12+ month
         else if (( now > endDate + 360 days )&& (tokenReleasedAdvisor +tokens <= 300000000 * (10 ** decimal))){
-          advisorShare = advisorShare.sub(tokens);
-          tokenReleasedAdvisor = tokenReleasedAdvisor + tokens;
-          ercObject.transfer(msg.sender, tokens);//msg.sender owner
+         transferFunds(tokens , false);
           return true;
         }
         revert();
@@ -241,10 +215,9 @@ contract ico is Ownable {
       ercObject.transfer(msg.sender, tokens);//msg.sender owner 
       return true;
     }
-
+    
   function contributionPercent() public view returns(uint percentage){
       // let buyer know what percentage they hold in ico9
     return  (ercObject.balanceOf(msg.sender).mul(100)).div(totalSupply) * (10 ** decimal);
-  }
-  
+  } 
 }
