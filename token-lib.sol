@@ -70,11 +70,18 @@ contract sofoCoin is ERC20Interface ,Ownable{
  uint public initialSupply ;
  address public owner;
  uint public  totalSupply;
-    
+ uint founderShare   = 390000000; //13%
+ uint bountyShare    = 60000000; // 2%
+ uint advisorShare   = 300000000; // 10%
+ uint teamShare      = 450000000; // 15%
+ uint liquidityShare = 300000000; // 10% /// giving for exchange website for gas used in tx 
+ // to liquidate market value of the coin by increasing the coins in flow
+
     constructor() public {
         totalSupply = 3000000000 * (10 ** decimal) ;// 300million tokens 3000000000 * 000000000000000000
         owner = msg.sender;
         coinBalance[owner]= totalSupply;
+        initialSupply = 1500000000 * (10 ** decimal) ;// 300million tokens 3000000000 * 000000000000000000
     }
     
     function  totalSupply() public constant returns (uint){
